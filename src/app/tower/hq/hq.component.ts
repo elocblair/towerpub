@@ -16,7 +16,6 @@ export class HqComponent implements OnInit, OnDestroy {
   hqLevel: number;
   levelUpRequirementsSubscription: Subscription;
   levelUpRequirementsString: string;
-  notEnoughResources = false;
 
   constructor(private hqService: HqService) { }
 
@@ -65,18 +64,6 @@ export class HqComponent implements OnInit, OnDestroy {
       this.hqLevel = this.hqService.levelUpHq();
       clearInterval(this.intervalId);
     });
-  }
-
-  getTimeAndRequirements(): string {
-    if (!this.hqService.currentLevelUpRequirements) {
-      return 'building has reached max level';
-    }
-    let levelUp = 'requirements: ';
-    levelUp = this.hqService.currentLevelUpRequirements.timeInSeconds + ' seconds, ';
-    for (const key of this.hqService.currentLevelUpRequirements.requirements.keys()) {
-      levelUp = levelUp + this.hqService.currentLevelUpRequirements.requirements.get(key) + ' ' + key;
-    }
-    return levelUp;
   }
 
   constructNew() {

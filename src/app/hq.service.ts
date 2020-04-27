@@ -78,7 +78,7 @@ export class HqService {
       let levelUp = 'requirements: ';
       levelUp = this.currentLevelUpRequirements.timeInSeconds + ' seconds ';
       for (const key of this.currentLevelUpRequirements.requirements.keys()) {
-        levelUp = levelUp + ' | ' + this.currentLevelUpRequirements.requirements.get(key) + ' ' + key + ' ';
+        levelUp = levelUp + ' & ' + this.currentLevelUpRequirements.requirements.get(key) + ' ' + key + ' ';
       }
       this.levelUpReqString.next(levelUp);
     }
