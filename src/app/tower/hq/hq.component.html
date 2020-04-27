@@ -1,0 +1,38 @@
+<div class="row">
+  <div class="col-md-2">
+    <h4>HQ level = {{hqLevel}}</h4>
+  </div>
+  <div class="col-md-4" style="padding-bottom: 6rem;">
+  </div>
+</div>
+<div class="row">
+</div>
+<div class="row">
+  <div class="col-md-2">
+    <button class="btn btn-primary" type="button" (click)="levelUpHQ()">level up headquarters</button>
+    <span *ngIf="notEnoughResources"></span>
+  </div>
+  <div class="col-md-10">
+    <span>requirements to level up: {{levelUpRequirementsString}}</span>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <div *ngIf="showCountdown">
+      <p>{{countdown | timerPipe}}</p>
+    </div>
+  </div>
+</div>
+<hr>
+<div class="row">
+  <div class="col-md-4">
+    <button class="btn btn-primary" type="button" (click)="constructNew()">construct new building</button>
+  </div>
+</div>
+<h3>
+  resources
+</h3>
+<hr>
+<div class="row">
+  <app-resource-manager></app-resource-manager>
+</div>
