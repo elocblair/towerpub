@@ -38,5 +38,4 @@ export class ResourceService {
         this.resourcesMapSubject.next(this.resourcesMap);
       });
   }
-
 }

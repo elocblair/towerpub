@@ -3,6 +3,7 @@ import { ResourceService } from './resource.service';
 import { LevelRequirements } from './shared/level-requirements.model';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -10,13 +11,27 @@ export class HqService {
 
   constructor(private resourceService: ResourceService, private http: HttpClient) {}
 
-  hqLevel = 0;
+  hqLevel: number;
   hqLevelPath: LevelRequirements[] = [];
   currentLevelUpRequirements: LevelRequirements;
   levelUpEndTime: number;
   levelUpInProcess = false;
   private levelUpReqString = new BehaviorSubject<string>('');
+  private initDataSubject = new BehaviorSubject<string>('');
 
+  getInitialHqData() {
+    this.http.get<{message: string, levelUpInProcess: boolean, levelUpEndTime: number, hqLevel: number}>
+      ('http://localhost:3000/hq/initdata').subscribe((initData) => {
+        if(Date.now() > initData.levelUpEndTime) {
+          this.levelUpInProcess = false;
+        }else{
+          this.levelUpInProcess = true;
+        }
+        this.hqLevel = +initData.hqLevel;
+        this.levelUpEndTime = initData.levelUpEndTime;
+        this.initDataSubject.next('');
+      });
+  }
 
   levelUpHq(): number {
     this.hqLevel += 1;
@@ -86,5 +101,9 @@ export class HqService {
 
   getLevelUpReqString(): Observable<string> {
     return this.levelUpReqString.asObservable();
+  }
+
+  getInitDataSubject(): Observable<string> {
+    return this.initDataSubject.asObservable();
   }
 }

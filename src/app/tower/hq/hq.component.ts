@@ -15,12 +15,16 @@ export class HqComponent implements OnInit, OnDestroy {
   intervalId: any;
   hqLevel: number;
   levelUpRequirementsSubscription: Subscription;
+  initDataSubscription: Subscription;
   levelUpRequirementsString: string;
 
   constructor(private hqService: HqService) { }
 
   ngOnInit(): void {
-    this.hqLevel = this.hqService.hqLevel;
+    this.hqService.getInitialHqData();
+    this.initDataSubscription = this.hqService.getInitDataSubject().subscribe( data => {
+      this.hqLevel = this.hqService.hqLevel;
+    });
     this.hqService.getLevelPath();
     this.levelUpRequirementsSubscription = this.hqService.getLevelUpReqString().subscribe( value => {
       this.levelUpRequirementsString = value + '';

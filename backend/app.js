@@ -18,7 +18,6 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Methods",
     "GET, POST, PATCH, DELETE, OPTIONS"
   );
-  console.log('cole ' + res.getHeaderNames);
   next();
 });
 
@@ -34,6 +33,12 @@ app.get("/hq/levels", cors(), (req, res, next) => {
     timeInSeconds: 15
   }];
   res.status(200).json({message: "successfully got dummy level path from express!", levelRequirements: levelRequirements});
+});
+
+app.get("/hq/initData", cors(), (req, res, next) => {
+  levelUpEndTime = 1234;
+  hqLevel = 0;
+  res.status(200).json({message: "successfully got initial hq data!", hqLevel: hqLevel, levelUpEndTime: levelUpEndTime});
 });
 
 app.get("/resources/array", cors(), (req, res, next) => {
