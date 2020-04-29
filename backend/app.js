@@ -36,5 +36,10 @@ app.get("/hq/levels", cors(), (req, res, next) => {
   res.status(200).json({message: "successfully got dummy level path from express!", levelRequirements: levelRequirements});
 });
 
+app.get("/resources/array", cors(), (req, res, next) => {
+  const resourcesArray = ["wood", "20", "earth", "1", "stone", "0"];
+  res.status(200).json({message: "successfully got resources array", resourcesArray: resourcesArray})
+})
+
 
 module.exports = app;
