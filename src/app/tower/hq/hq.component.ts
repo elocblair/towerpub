@@ -22,10 +22,10 @@ export class HqComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.hqService.getInitialHqData();
-    this.initDataSubscription = this.hqService.getInitDataSubject().subscribe( data => {
+    this.initDataSubscription = this.hqService.getInitDataSubject().subscribe( () => {
       this.hqLevel = this.hqService.hqLevel;
+      this.hqService.getLevelPath();
     });
-    this.hqService.getLevelPath();
     this.levelUpRequirementsSubscription = this.hqService.getLevelUpReqString().subscribe( value => {
       this.levelUpRequirementsString = value + '';
     });
@@ -78,5 +78,6 @@ export class HqComponent implements OnInit, OnDestroy {
       this.countSubscription.unsubscribe();
       clearInterval(this.intervalId);
     }
+    this.hqService.saveHqStatus();
   }
 }

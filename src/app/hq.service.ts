@@ -16,19 +16,23 @@ export class HqService {
   currentLevelUpRequirements: LevelRequirements;
   levelUpEndTime: number;
   levelUpInProcess = false;
+  currentHqDataId: string;
   private levelUpReqString = new BehaviorSubject<string>('');
   private initDataSubject = new BehaviorSubject<string>('');
 
   getInitialHqData() {
-    this.http.get<{message: string, levelUpInProcess: boolean, levelUpEndTime: number, hqLevel: number}>
+    this.http.get<{message: string, _id: string, levelUpInProcess: boolean, levelUpEndTime: number, hqLevel: number}>
       ('http://localhost:3000/hq/initdata').subscribe((initData) => {
-        if(Date.now() > initData.levelUpEndTime) {
-          this.levelUpInProcess = false;
-        }else{
+        console.log(initData);
+        this.currentHqDataId = initData._id;
+        this.hqLevel = +initData.hqLevel;
+        if(Date.now() > initData.levelUpEndTime && initData.levelUpInProcess) {
+          this.levelUpHq();
+        }else if(Date.now() < initData.levelUpEndTime && initData.levelUpInProcess){
           this.levelUpInProcess = true;
         }
-        this.hqLevel = +initData.hqLevel;
         this.levelUpEndTime = initData.levelUpEndTime;
+        this.setCurrentLevelUpRequirements();
         this.initDataSubject.next('');
       });
   }
@@ -76,7 +80,6 @@ export class HqService {
         }
         const lvl = new LevelRequirements(levelRequirement.level, req, levelRequirement.timeInSeconds);
         this.hqLevelPath.push(lvl);
-        this.setCurrentLevelUpRequirements();
       }
     });
   }
@@ -105,5 +108,18 @@ export class HqService {
 
   getInitDataSubject(): Observable<string> {
     return this.initDataSubject.asObservable();
+  }
+
+  saveHqStatus() {
+    console.log(this.currentHqDataId);
+    this.http.delete('http://localhost:3000/hq/initdata/' + this.currentHqDataId)
+      .subscribe( () => {
+        console.log('in service delete');
+      });
+    const postData = {hqLevel: this.hqLevel, levelUpInProcess: this.levelUpInProcess, levelUpEndTime: this.levelUpEndTime}
+    this.http.post<{message: string}>('http://localhost:3000/hq/initdata', postData)
+      .subscribe((responseData) => {
+        console.log(responseData.message);
+      });
   }
 }

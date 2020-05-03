@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ResourceService } from 'src/app/resource.service';
 
 @Component({
@@ -6,13 +6,13 @@ import { ResourceService } from 'src/app/resource.service';
   templateUrl: './resource-manager.component.html',
   styleUrls: ['./resource-manager.component.css']
 })
-export class ResourceManagerComponent implements OnInit {
+export class ResourceManagerComponent implements OnInit, OnDestroy {
 
   wood: number;
   stone: number;
   earth: number;
 
-  constructor(private resourceService: ResourceService) { }
+  constructor(private resourceService: ResourceService) {}
 
   ngOnInit(): void {
     this.resourceService.initResourceMap();
@@ -28,6 +28,10 @@ export class ResourceManagerComponent implements OnInit {
     this.wood = Math.floor(this.resourceService.resourcesMap.get('wood'));
     this.earth = Math.floor(this.resourceService.resourcesMap.get('earth'));
     this.stone = Math.floor(this.resourceService.resourcesMap.get('stone'));
+  }
+
+  ngOnDestroy(): void {
+    this.resourceService.postNewResourceCount();
   }
 
 }

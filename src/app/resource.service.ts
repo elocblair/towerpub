@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { stringify } from 'querystring';
 
 @Injectable({
   providedIn: 'root'
@@ -36,6 +37,17 @@ export class ResourceService {
           this.resourcesMap.set(responseData.resourcesArray[i], +responseData.resourcesArray[i+1]);
         }
         this.resourcesMapSubject.next(this.resourcesMap);
+      });
+  }
+
+  postNewResourceCount() {
+    const resourcesArray = [];
+    for(const key of this.resourcesMap.keys()) {
+      resourcesArray.push(key, this.resourcesMap.get(key).toString());
+    }
+    this.http.post<{message: string}>('http://localhost:3000/resources/array', resourcesArray)
+      .subscribe((responseData) => {
+        console.log(responseData.message);
       });
   }
 }
