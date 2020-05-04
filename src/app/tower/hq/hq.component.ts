@@ -25,13 +25,14 @@ export class HqComponent implements OnInit, OnDestroy {
     this.initDataSubscription = this.hqService.getInitDataSubject().subscribe( () => {
       this.hqLevel = this.hqService.hqLevel;
       this.hqService.getLevelPath();
+      if (this.hqService.levelUpInProcess) {
+        this.startTimer((this.hqService.levelUpEndTime - Date.now()) / 1000);
+      }
+      this.levelUpRequirementsSubscription = this.hqService.getLevelUpReqString().subscribe( value => {
+        this.levelUpRequirementsString = value + '';
+      });
     });
-    this.levelUpRequirementsSubscription = this.hqService.getLevelUpReqString().subscribe( value => {
-      this.levelUpRequirementsString = value + '';
-    });
-    if (this.hqService.levelUpInProcess) {
-      this.startTimer((this.hqService.levelUpEndTime - Date.now()) / 1000);
-    }
+
   }
 
   levelUpHQ() {
@@ -78,6 +79,6 @@ export class HqComponent implements OnInit, OnDestroy {
       this.countSubscription.unsubscribe();
       clearInterval(this.intervalId);
     }
-    this.hqService.saveHqStatus();
+    //this.hqService.saveHqStatus();
   }
 }

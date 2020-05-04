@@ -39,19 +39,19 @@ app.get("/hq/levels", (req, res, next) => {
   {
     level: "hq2",
     requirements: ["wood","20","earth","5"],
-    timeInSeconds: 120
+    timeInSeconds: 20
   }];
   res.status(200).json({message: "successfully got dummy level path from express!", levelRequirements: levelRequirements});
 });
 
 app.get("/hq/initData", (req, res, next) => {
   HqData.find().then(documents => {
-    console.log(documents);
     res.status(200).json({
       message: "successfully got initial hq data!",
       _id: documents[0]._id,
       hqLevel: +documents[0].hqLevel,
-      levelUpEndTime: +documents[0].levelUpEndTime
+      levelUpEndTime: +documents[0].levelUpEndTime,
+      levelUpInProcess: documents[0].levelUpInProcess
     });
   });
 });
@@ -59,7 +59,8 @@ app.get("/hq/initData", (req, res, next) => {
 app.post("/hq/initData", (req, res, next) => {
   hqData = new HqData({
     hqLevel: req.body.hqLevel,
-    levelUpEndTime: req.body.levelUpEndTime
+    levelUpEndTime: req.body.levelUpEndTime,
+    levelUpInProcess: req.body.levelUpInProcess
   });
   hqData.save()
   res.status(201).json({message: "hq data added to db!"});
@@ -67,7 +68,6 @@ app.post("/hq/initData", (req, res, next) => {
 
 app.delete("/hq/initData/:id", (req, res, next) => {
   HqData.deleteOne({_id: req.params.id}).then(result => {
-    console.log(result);
     res.status(200).json({message: 'deleted response'});
   });
 
