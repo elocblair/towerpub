@@ -40,11 +40,16 @@ app.get("/hq/levels", (req, res, next) => {
     level: "hq2",
     requirements: ["wood","20","earth","5"],
     timeInSeconds: 20
+  },
+  {
+    level: "hq3",
+    requirements: ["wood", "1","stone","25"],
+    timeInSeconds: 30
   }];
   res.status(200).json({message: "successfully got dummy level path from express!", levelRequirements: levelRequirements});
 });
 
-app.get("/hq/initData", (req, res, next) => {
+app.get("/hq/status", (req, res, next) => {
   HqData.find().then(documents => {
     res.status(200).json({
       message: "successfully got initial hq data!",
@@ -56,17 +61,17 @@ app.get("/hq/initData", (req, res, next) => {
   });
 });
 
-app.post("/hq/initData", (req, res, next) => {
+app.post("/hq/status", (req, res, next) => {
   hqData = new HqData({
     hqLevel: req.body.hqLevel,
     levelUpEndTime: req.body.levelUpEndTime,
     levelUpInProcess: req.body.levelUpInProcess
   });
-  hqData.save()
-  res.status(201).json({message: "hq data added to db!"});
+  hqData.save();
+  res.status(201).json({message: "hq data added to db!", _id: hqData._id});
 });
 
-app.delete("/hq/initData/:id", (req, res, next) => {
+app.delete("/hq/status/:id", (req, res, next) => {
   HqData.deleteOne({_id: req.params.id}).then(result => {
     res.status(200).json({message: 'deleted response'});
   });
@@ -75,7 +80,7 @@ app.delete("/hq/initData/:id", (req, res, next) => {
 
 app.get("/resources/array", (req, res, next) => {
   const resourcesArray = ["wood", "20", "earth", "1", "stone", "0"];
-  res.status(200).json({message: "successfully got resources array", resourcesArray: resourcesArray})
+  res.status(200).json({message: "successfully got resources array", resourcesArray: resourcesArray});
 });
 
 app.post("/resources/array", (req, res, next) => {

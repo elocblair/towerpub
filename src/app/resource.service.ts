@@ -47,7 +47,7 @@ export class ResourceService {
     }
     this.http.post<{message: string}>('http://localhost:3000/resources/array', resourcesArray)
       .subscribe((responseData) => {
-        console.log(responseData.message);
+        // console.log(responseData.message);
       });
   }
 }

@@ -15,31 +15,40 @@ export class HqComponent implements OnInit, OnDestroy {
   intervalId: any;
   hqLevel: number;
   levelUpRequirementsSubscription: Subscription;
-  initDataSubscription: Subscription;
+  hqStatusSubcription: Subscription;
   levelUpRequirementsString: string;
 
   constructor(private hqService: HqService) { }
 
   ngOnInit(): void {
-    this.hqService.getInitialHqData();
-    this.initDataSubscription = this.hqService.getInitDataSubject().subscribe( () => {
+    this.hqService.getHqStatus();
+    this.hqStatusSubcription = this.hqService.getHqStatusSubject().subscribe( () => {
+      // set hqLevel when status GET returns
       this.hqLevel = this.hqService.hqLevel;
-      this.hqService.getLevelPath();
+      
+      // start timer if level up is still in process
       if (this.hqService.levelUpInProcess) {
         this.startTimer((this.hqService.levelUpEndTime - Date.now()) / 1000);
       }
+
+      // GET for level path operation
+      this.hqService.getLevelPath();
+
+      // subscribe to any level requirement string change
       this.levelUpRequirementsSubscription = this.hqService.getLevelUpReqString().subscribe( value => {
         this.levelUpRequirementsString = value + '';
       });
-    });
 
+    });
   }
 
   levelUpHQ() {
     if (!this.hqService.levelUpInProcess) {
       if (this.hqService.meetsRequirementsToLevelUp()) {
+        this.hqService.levelUpInProcess = true;
         this.hqService.consumeLevelUpResources();
         this.hqService.setLevelUpEndTime(Date.now());
+        this.hqService.setLevelUpReqSubject();
         this.startTimer(this.hqService.currentLevelUpRequirements.timeInSeconds);
       } else {
         alert('not enough resources');
@@ -79,6 +88,5 @@ export class HqComponent implements OnInit, OnDestroy {
       this.countSubscription.unsubscribe();
       clearInterval(this.intervalId);
     }
-    //this.hqService.saveHqStatus();
   }
 }

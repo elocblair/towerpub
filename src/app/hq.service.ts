@@ -18,57 +18,23 @@ export class HqService {
   levelUpEndTime: number;
   levelUpInProcess = false;
   currentHqDataId: string;
-  private levelUpReqString = new BehaviorSubject<string>('');
-  private initDataSubject = new BehaviorSubject<string>('');
+  private levelUpReqSubject = new BehaviorSubject<string>('');
+  private hqStatusSubject = new BehaviorSubject<string>('');
 
-  getInitialHqData() {
+  getHqStatus() {
+    console.log('getHqStatus');
     this.http.get<{message: string, _id: string, levelUpInProcess: boolean, levelUpEndTime: number, hqLevel: number}>
-      ('http://localhost:3000/hq/initdata').subscribe((initData) => {
-        this.currentHqDataId = initData._id;
-        this.hqLevel = +initData.hqLevel;
-        this.levelUpInProcess = initData.levelUpInProcess;
-        if(Date.now() > initData.levelUpEndTime && initData.levelUpInProcess) {
+      ('http://localhost:3000/hq/status').subscribe((hqStatus) => {
+        this.currentHqDataId = hqStatus._id;
+        this.hqLevel = +hqStatus.hqLevel;
+        this.levelUpInProcess = hqStatus.levelUpInProcess;
+        if(Date.now() > hqStatus.levelUpEndTime && hqStatus.levelUpInProcess) {
           this.levelUpHq();
         }
-        this.levelUpEndTime = initData.levelUpEndTime;
+        this.levelUpEndTime = hqStatus.levelUpEndTime;
         this.setCurrentLevelUpRequirements();
-        this.initDataSubject.next('');
+        this.hqStatusSubject.next('');
       });
-  }
-
-  levelUpHq(): number {
-    this.hqLevel += 1;
-    console.log('cole');
-    this.setCurrentLevelUpRequirements();
-    this.levelUpInProcess = false;
-    this.saveHqStatus();
-    return this.hqLevel;
-  }
-
-  meetsRequirementsToLevelUp(): boolean {
-    if (!this.currentLevelUpRequirements) {
-      return false;
-    }
-    for (const key of this.currentLevelUpRequirements.requirements.keys()) {
-      if (this.resourceService.resourcesMap.get(key) < this.currentLevelUpRequirements.requirements.get(key)) {
-        return false;
-      }
-    }
-    this.levelUpReqString.next('wait');
-    return true;
-  }
-
-  consumeLevelUpResources() {
-    for (const key of this.currentLevelUpRequirements.requirements.keys()) {
-      this.resourceService.resourcesMap
-        .set(key, this.resourceService.resourcesMap.get(key) - this.currentLevelUpRequirements.requirements.get(key));
-    }
-    this.resourceService.resourcesMapSubject.next(this.resourceService.resourcesMap);
-  }
-
-  setLevelUpEndTime(startTime: number) {
-    this.levelUpEndTime = startTime + this.currentLevelUpRequirements.timeInSeconds * 1000;
-    this.saveHqStatus();
   }
 
   getLevelPath() {
@@ -87,41 +53,78 @@ export class HqService {
     }
   }
 
-  setCurrentLevelUpRequirements() {
-    this.currentLevelUpRequirements = this.hqLevelPath[this.hqLevel];
-    this.setLevelUpReqString();
+  levelUpHq(): number {
+    this.levelUpInProcess = false;
+    this.hqLevel += 1;
+    this.setCurrentLevelUpRequirements();
+    this.replaceHqStatus();
+    return this.hqLevel;
   }
 
-  setLevelUpReqString() {
+  meetsRequirementsToLevelUp(): boolean {
     if (!this.currentLevelUpRequirements) {
-      this.levelUpReqString.next('max level');
+      return false;
+    }
+    for (const key of this.currentLevelUpRequirements.requirements.keys()) {
+      if (this.resourceService.resourcesMap.get(key) < this.currentLevelUpRequirements.requirements.get(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  consumeLevelUpResources() {
+    for (const key of this.currentLevelUpRequirements.requirements.keys()) {
+      this.resourceService.resourcesMap
+        .set(key, this.resourceService.resourcesMap.get(key) - this.currentLevelUpRequirements.requirements.get(key));
+    }
+    this.resourceService.resourcesMapSubject.next(this.resourceService.resourcesMap);
+  }
+
+  setLevelUpEndTime(startTime: number) {
+    this.levelUpEndTime = startTime + this.currentLevelUpRequirements.timeInSeconds * 1000;
+    this.replaceHqStatus();
+  }
+
+  setCurrentLevelUpRequirements() {
+    this.currentLevelUpRequirements = this.hqLevelPath[this.hqLevel];
+    this.setLevelUpReqSubject();
+  }
+
+  setLevelUpReqSubject() {
+    console.log(this.levelUpInProcess);
+    if (!this.currentLevelUpRequirements) {
+      this.levelUpReqSubject.next('max level');
     } else if (this.levelUpInProcess) {
-      this.levelUpReqString.next('wait');
+      this.levelUpReqSubject.next('wait');
     } else {
       let levelUp = 'requirements: ';
       levelUp = this.currentLevelUpRequirements.timeInSeconds + ' seconds ';
       for (const key of this.currentLevelUpRequirements.requirements.keys()) {
         levelUp = levelUp + ' & ' + this.currentLevelUpRequirements.requirements.get(key) + ' ' + key + ' ';
       }
-      this.levelUpReqString.next(levelUp);
+      console.log('update level up string');
+      this.levelUpReqSubject.next(levelUp);
     }
   }
 
   getLevelUpReqString(): Observable<string> {
-    return this.levelUpReqString.asObservable();
+    return this.levelUpReqSubject.asObservable();
   }
 
-  getInitDataSubject(): Observable<string> {
-    return this.initDataSubject.asObservable();
+  getHqStatusSubject(): Observable<string> {
+    return this.hqStatusSubject.asObservable();
   }
 
-  saveHqStatus() {
-    this.http.delete('http://localhost:3000/hq/initdata/' + this.currentHqDataId)
+  replaceHqStatus() {
+    console.log('replaceHqStatus');
+    this.http.delete('http://localhost:3000/hq/status/' + this.currentHqDataId)
       .subscribe( () => {
         const postData = {hqLevel: this.hqLevel, levelUpInProcess: this.levelUpInProcess, levelUpEndTime: this.levelUpEndTime};
-        this.http.post<{message: string}>('http://localhost:3000/hq/initdata', postData)
+        this.http.post<{message: string, _id: string}>('http://localhost:3000/hq/status', postData)
           .subscribe((responseData) => {
-            this.getInitialHqData();
+            console.log(responseData._id);
+            this.currentHqDataId = responseData._id;
           });
       });
   }
