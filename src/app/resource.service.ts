@@ -9,9 +9,10 @@ import { stringify } from 'querystring';
 export class ResourceService {
 
   resourcesMap = new Map<string, number>();
-  lastUpdated = Date.now();
+  lastUpdated: number;
   resourcesMapSubject = new BehaviorSubject<Map<string, number>>(this.resourcesMap);
-  showResources = false;
+  currentResourceDataId: string;
+  resourcesArray = [];
 
   constructor(private http: HttpClient) { }
 
@@ -25,29 +26,37 @@ export class ResourceService {
     const secondsSinceLastUpdate = (newLastUpdated - this.lastUpdated) / 1000;
     this.lastUpdated = newLastUpdated;
     for (const key of this.resourcesMap.keys()) {
-      this.resourcesMap.set(key, this.resourcesMap.get(key) + secondsSinceLastUpdate);
+      this.resourcesMap.set(key, +this.resourcesMap.get(key) + secondsSinceLastUpdate);
     }
     this.resourcesMapSubject.next(this.resourcesMap);
+    this.postNewResourceCount();
   }
 
   getResourcesMap() {
-    this.http.get<{message: string, resourcesArray: string[]}>('http://localhost:3000/resources/array')
+    this.http.get<{message: string, _id: string, resourcesArray: string[], lastUpdated: number}>('http://localhost:3000/resources')
       .subscribe((responseData) => {
         for ( let i = 0; i < responseData.resourcesArray.length; i = i + 2 ) {
           this.resourcesMap.set(responseData.resourcesArray[i], +responseData.resourcesArray[i+1]);
         }
+        console.log(responseData);
+        this.currentResourceDataId = responseData._id;
+        this.lastUpdated = responseData.lastUpdated;
         this.resourcesMapSubject.next(this.resourcesMap);
       });
   }
 
   postNewResourceCount() {
-    const resourcesArray = [];
-    for(const key of this.resourcesMap.keys()) {
-      resourcesArray.push(key, this.resourcesMap.get(key).toString());
-    }
-    this.http.post<{message: string}>('http://localhost:3000/resources/array', resourcesArray)
-      .subscribe((responseData) => {
-        // console.log(responseData.message);
+    this.http.delete('http://localhost:3000/resources/' + this.currentResourceDataId)
+      .subscribe(() => {
+        for(const key of this.resourcesMap.keys()) {
+          this.resourcesArray.push(key, this.resourcesMap.get(key).toString());
+        }
+        const postData = {resourcesArray: this.resourcesArray, lastUpdated: this.lastUpdated};
+        this.http.post<{message: string, _id: string}>('http://localhost:3000/resources', postData)
+          .subscribe((responseData) => {
+            console.log(responseData.message);
+            this.currentResourceDataId = responseData._id;
+          });
       });
   }
 }

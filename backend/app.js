@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 
 const HqData = require('./models/hqData');
+const ResourceData = require('./models/resourceData');
 
 const app = express();
 
@@ -75,17 +76,35 @@ app.delete("/hq/status/:id", (req, res, next) => {
   HqData.deleteOne({_id: req.params.id}).then(result => {
     res.status(200).json({message: 'deleted response'});
   });
-
 });
 
-app.get("/resources/array", (req, res, next) => {
-  const resourcesArray = ["wood", "20", "earth", "1", "stone", "0"];
-  res.status(200).json({message: "successfully got resources array", resourcesArray: resourcesArray});
+app.get("/resources", (req, res, next) => {
+  // const resourcesArray = ["wood", "20", "earth", "1", "stone", "0"];
+  ResourceData.find().then(documents =>{
+    console.log(documents);
+    res.status(200).json({
+      message: "got resources from db",
+      _id: documents[0]._id,
+      resourcesArray: documents[0].resourcesArray,
+      lastUpdated: documents[0].lastUpdated
+    });
+  });
+  // res.status(200).json({message: "successfully got resources array", resourcesArray: resourcesArray});
 });
 
-app.post("/resources/array", (req, res, next) => {
-  postData = req.body;
-  res.status(201).json({message: "resource data added to db!"});
+app.post("/resources", (req, res, next) => {
+  resourceData = new ResourceData({
+    resourcesArray: req.body.resourcesArray,
+    lastUpdated: req.body.lastUpdated
+  });
+  resourceData.save();
+  res.status(201).json({message: "resource data added to db!", _id: resourceData._id});
+});
+
+app.delete("/resources/:id", (req, res, next) => {
+  ResourceData.deleteOne({_id: req.params.id}).then(result => {
+    res.status(200).json({message: "old resource count deleted"});
+  });
 });
 
 

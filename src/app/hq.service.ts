@@ -75,9 +75,13 @@ export class HqService {
 
   consumeLevelUpResources() {
     for (const key of this.currentLevelUpRequirements.requirements.keys()) {
-      this.resourceService.resourcesMap
-        .set(key, this.resourceService.resourcesMap.get(key) - this.currentLevelUpRequirements.requirements.get(key));
+      const resourceCount = +this.resourceService.resourcesMap.get(key);
+      const resourceToConsume = +this.currentLevelUpRequirements.requirements.get(key);
+      console.log(this.resourceService.resourcesMap);
+      console.log(resourceToConsume);
+      this.resourceService.resourcesMap.set(key, resourceCount - resourceToConsume);
     }
+    // this.resourceService.postNewResourceCount();
     this.resourceService.resourcesMapSubject.next(this.resourceService.resourcesMap);
   }
 
@@ -123,7 +127,6 @@ export class HqService {
         const postData = {hqLevel: this.hqLevel, levelUpInProcess: this.levelUpInProcess, levelUpEndTime: this.levelUpEndTime};
         this.http.post<{message: string, _id: string}>('http://localhost:3000/hq/status', postData)
           .subscribe((responseData) => {
-            console.log(responseData._id);
             this.currentHqDataId = responseData._id;
           });
       });
