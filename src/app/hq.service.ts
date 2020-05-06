@@ -77,11 +77,12 @@ export class HqService {
     for (const key of this.currentLevelUpRequirements.requirements.keys()) {
       const resourceCount = +this.resourceService.resourcesMap.get(key);
       const resourceToConsume = +this.currentLevelUpRequirements.requirements.get(key);
-      console.log(this.resourceService.resourcesMap);
+      console.log(resourceCount);
       console.log(resourceToConsume);
+      this.resourceService.resourcesMap.delete(key);
       this.resourceService.resourcesMap.set(key, resourceCount - resourceToConsume);
     }
-    // this.resourceService.postNewResourceCount();
+    this.resourceService.postNewResourceCount();
     this.resourceService.resourcesMapSubject.next(this.resourceService.resourcesMap);
   }
 

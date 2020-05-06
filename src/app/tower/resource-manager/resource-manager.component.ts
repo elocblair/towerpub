@@ -31,7 +31,7 @@ export class ResourceManagerComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.resourceService.postNewResourceCount();
+    // this.resourceService.postNewResourceCount();
   }
 
 }

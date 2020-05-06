@@ -12,7 +12,7 @@ export class ResourceService {
   lastUpdated: number;
   resourcesMapSubject = new BehaviorSubject<Map<string, number>>(this.resourcesMap);
   currentResourceDataId: string;
-  resourcesArray = [];
+  resourcesArray: string[];
 
   constructor(private http: HttpClient) { }
 
@@ -26,7 +26,9 @@ export class ResourceService {
     const secondsSinceLastUpdate = (newLastUpdated - this.lastUpdated) / 1000;
     this.lastUpdated = newLastUpdated;
     for (const key of this.resourcesMap.keys()) {
-      this.resourcesMap.set(key, +this.resourcesMap.get(key) + secondsSinceLastUpdate);
+      console.log('here');
+      const resourceCount = +this.resourcesMap.get(key);
+      this.resourcesMap.set(key, resourceCount + secondsSinceLastUpdate);
     }
     this.resourcesMapSubject.next(this.resourcesMap);
     this.postNewResourceCount();
@@ -46,6 +48,7 @@ export class ResourceService {
   }
 
   postNewResourceCount() {
+    this.resourcesArray = [];
     this.http.delete('http://localhost:3000/resources/' + this.currentResourceDataId)
       .subscribe(() => {
         for(const key of this.resourcesMap.keys()) {
